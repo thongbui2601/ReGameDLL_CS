@@ -55,6 +55,26 @@ void IdleState::OnUpdate(CCSBot *me)
 	if (!me->GetLastKnownArea() && me->StayOnNavMesh() == false)
 		return;
 
+	// Zombie Mode
+	if (CVAR_GET_FLOAT("mp_zombie") > 0.0f)
+	{
+		// Zombies always hunt, never idle
+		if (me->m_iTeam == TERRORIST)
+		{
+			me->Hunt(); 
+			return;
+		}
+		
+		// Humans (CTs) find a camping spot to defend
+		// Try to find a good defensive spot, searching widely
+		if (me->TryToHide(nullptr, -1.0f, 4000.0f, true)) 
+		{
+			me->SetDisposition(CCSBot::OPPORTUNITY_FIRE);
+			me->PrintIfWatched("Finding a camping spot for Zombie Mode defense!\n");
+			return;
+		}
+	}
+
 	// zombies never leave the Idle state
 	if (cv_bot_zombie.value > 0.0f)
 	{

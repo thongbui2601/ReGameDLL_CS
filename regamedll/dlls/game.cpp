@@ -139,6 +139,8 @@ cvar_t buy_anywhere                 = { "mp_buy_anywhere", "0", FCVAR_SERVER, 0.
 cvar_t give_player_c4               = { "mp_give_player_c4", "1", FCVAR_SERVER, 0.0f, nullptr };
 cvar_t weapons_allow_map_placed     = { "mp_weapons_allow_map_placed", "1", FCVAR_SERVER, 0.0f, nullptr };
 
+cvar_t mp_zombie                    = { "mp_zombie", "0", FCVAR_SERVER, 0.0f, nullptr };
+
 cvar_t allow_point_servercommand    = { "mp_allow_point_servercommand", "0", 0, 0.0f, nullptr };
 cvar_t hullbounds_sets              = { "mp_hullbounds_sets", "1", 0, 0.0f, nullptr };
 cvar_t unduck_method                = { "mp_unduck_method", "0", 0, 0.0f, nullptr };
@@ -400,6 +402,7 @@ void EXT_FUNC GameDLLInit()
 	CVAR_REGISTER(&max_teamkills);
 	CVAR_REGISTER(&fraglimit);
 	CVAR_REGISTER(&round_restart_delay);
+	CVAR_REGISTER(&mp_zombie);
 
 	CVAR_REGISTER(&showtriggers);
 	CVAR_REGISTER(&hostagehurtable);

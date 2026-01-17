@@ -295,8 +295,8 @@ void CCSBot::Attack(CBasePlayer *victim)
 	if (!victim)
 		return;
 
-	// zombies never attack
-	if (cv_bot_zombie.value != 0.0f)
+	// zombies never attack (legacy mode only)
+	if (cv_bot_zombie.value != 0.0f && CVAR_GET_FLOAT("mp_zombie") == 0.0f)
 		return;
 
 #ifdef REGAMEDLL_ADD

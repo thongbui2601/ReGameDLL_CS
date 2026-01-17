@@ -32,6 +32,8 @@
 #include "bot/cs_bot_manager.h"
 #include "bot/cs_bot_chatter.h"
 
+extern cvar_t mp_zombie;
+
 const int MAX_BUY_WEAPON_PRIMARY   = 13;
 const int MAX_BUY_WEAPON_SECONDARY = 3;
 
@@ -1621,9 +1623,31 @@ public:
 			// compute distance travelled along path so far
 			float cost = dist + fromArea->GetCostSoFar();
 
+			// Zombie Mode: Enforce area restrictions
+			if (mp_zombie.value > 0.0f)
+			{
+				bool isZombie = (m_bot->m_iTeam == TERRORIST);
+				bool isHuman = (m_bot->m_iTeam == CT);
+
+				if (isZombie && (area->GetAttributes() & NAV_HUMAN_ONLY))
+					return -1.0f; // Zombies cannot enter Human Only areas
+				
+				if (isHuman && (area->GetAttributes() & NAV_ZOMBIE_ONLY))
+					return -1.0f; // Humans cannot enter Zombie Only areas
+			}
+
 			// zombies ignore all path penalties
-			if (cv_bot_zombie.value > 0.0f)
+			if (cv_bot_zombie.value > 0.0f || mp_zombie.value > 0.0f)
+			{
+				// Prioritize ZOMBIE_ONLY areas for Zombies
+				if (mp_zombie.value > 0.0f && (m_bot->m_iTeam == TERRORIST) && (area->GetAttributes() & NAV_ZOMBIE_ONLY))
+				{
+					// Artificially reduce cost to prefer this path
+					return cost * 0.5f; 
+				}
+
 				return cost;
+			}
 
 			// add cost of "jump down" pain unless we're jumping into water
 			if (!area->IsConnected(fromArea, NUM_DIRECTIONS))

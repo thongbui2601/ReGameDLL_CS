@@ -69,6 +69,9 @@ enum NavAttributeType
 	NAV_JUMP    = 0x02, // must jump to traverse this area
 	NAV_PRECISE = 0x04, // do not adjust for obstacles, just move along area
 	NAV_NO_JUMP = 0x08, // inhibit discontinuity jumping
+	NAV_ZOMBIE_ONLY = 0x10,
+	NAV_HUMAN_ONLY  = 0x20,
+	NAV_CAMP        = 0x40,
 };
 
 enum NavNotifyDestroyType

@@ -3147,7 +3147,7 @@ bool IsSpotOccupied(CBaseEntity *pEntity, const Vector *pos)
 class CollectHidingSpotsFunctor
 {
 public:
-	CollectHidingSpotsFunctor(CBaseEntity *me, const Vector *origin, float range, unsigned char flags, Place place = UNDEFINED_PLACE, bool useCrouchAreas = true)
+	CollectHidingSpotsFunctor(CBaseEntity *me, const Vector *origin, float range, unsigned char flags, Place place = UNDEFINED_PLACE, bool useCrouchAreas = true, int requiredAreaFlags = 0)
 	{
 		m_me = me;
 		m_count = 0;
@@ -3156,6 +3156,7 @@ public:
 		m_flags = flags;
 		m_place = place;
 		m_useCrouchAreas = useCrouchAreas;
+		m_requiredAreaFlags = requiredAreaFlags;
 	}
 	enum { MAX_SPOTS = 256 };
 
@@ -3163,6 +3164,10 @@ public:
 	{
 		// if a place is specified, only consider hiding spots from areas in that place
 		if (m_place != UNDEFINED_PLACE && area->GetPlace() != m_place)
+			return true;
+
+		// if we require specific area flags, check them
+		if (m_requiredAreaFlags && !(area->GetAttributes() & m_requiredAreaFlags))
 			return true;
 
 		// collect all the hiding spots in this area
@@ -3228,6 +3233,7 @@ public:
 	unsigned char m_flags;
 	Place m_place;
 	bool m_useCrouchAreas;
+	int m_requiredAreaFlags;
 };
 
 // Do a breadth-first search to find a nearby hiding spot and return it.
@@ -3239,6 +3245,35 @@ const Vector *FindNearbyHidingSpot(CBaseEntity *me, const Vector *pos, CNavArea 
 		return nullptr;
 
 	// collect set of nearby hiding spots
+	if (CVAR_GET_FLOAT("mp_zombie") > 0.0f && me->IsPlayer() && ((CBasePlayer *)me)->m_iTeam == CT)
+	{
+		// In Zombie Mode, CTs prioritize Camping spots
+		CollectHidingSpotsFunctor collector(me, pos, maxRange, HidingSpot::IN_COVER, UNDEFINED_PLACE, true, NAV_CAMP);
+		SearchSurroundingAreas(startArea, pos, collector, maxRange);
+
+		if (collector.m_count > 0)
+		{
+			if (useNearest)
+			{
+				const Vector *closest = nullptr;
+				float closeRangeSq = 9999999999.9f;
+				for (int i = 0; i < collector.m_count; i++)
+				{
+					float rangeSq = (*collector.m_hidingSpot[i] - *pos).LengthSquared();
+					if (rangeSq < closeRangeSq)
+					{
+						closeRangeSq = rangeSq;
+						closest = collector.m_hidingSpot[i];
+					}
+				}
+				return closest;
+			}
+
+			int which = RANDOM_LONG(0, collector.m_count - 1);
+			return collector.m_hidingSpot[which];
+		}
+	}
+
 	if (isSniper)
 	{
 		CollectHidingSpotsFunctor collector(me, pos, maxRange, HidingSpot::IDEAL_SNIPER_SPOT);
@@ -3878,11 +3913,14 @@ void EditNavAreas(NavEditCmdType cmd)
 				}
 				else
 				{
-					Q_snprintf(attrib, sizeof(attrib), "%s%s%s%s",
-						(area->GetAttributes() & NAV_CROUCH)  ? "CROUCH "  : "",
-						(area->GetAttributes() & NAV_JUMP)    ? "JUMP "    : "",
-						(area->GetAttributes() & NAV_PRECISE) ? "PRECISE " : "",
-						(area->GetAttributes() & NAV_NO_JUMP) ? "NO_JUMP " : "");
+					Q_snprintf(attrib, sizeof(attrib), "%s%s%s%s%s%s%s",
+						(area->GetAttributes() & NAV_CROUCH)      ? "CROUCH "  : "",
+						(area->GetAttributes() & NAV_JUMP)        ? "JUMP "    : "",
+						(area->GetAttributes() & NAV_PRECISE)     ? "PRECISE " : "",
+						(area->GetAttributes() & NAV_NO_JUMP)     ? "NO_JUMP " : "",
+						(area->GetAttributes() & NAV_ZOMBIE_ONLY) ? "ZOMBIE "  : "",
+						(area->GetAttributes() & NAV_HUMAN_ONLY)  ? "HUMAN "   : "",
+						(area->GetAttributes() & NAV_CAMP)        ? "CAMP "    : "");
 				}
 
 				Q_snprintf(buffer, sizeof(buffer), "Area #%d %s %s\n", area->GetID(), locName, attrib);
@@ -4030,6 +4068,18 @@ void EditNavAreas(NavEditCmdType cmd)
 					case EDIT_ATTRIB_NO_JUMP:
 						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
 						area->SetAttributes(area->GetAttributes() ^ NAV_NO_JUMP);
+						break;
+					case EDIT_ATTRIB_ZOMBIE_ONLY:
+						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
+						area->SetAttributes(area->GetAttributes() ^ NAV_ZOMBIE_ONLY);
+						break;
+					case EDIT_ATTRIB_HUMAN_ONLY:
+						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
+						area->SetAttributes(area->GetAttributes() ^ NAV_HUMAN_ONLY);
+						break;
+					case EDIT_ATTRIB_CAMP:
+						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
+						area->SetAttributes(area->GetAttributes() ^ NAV_CAMP);
 						break;
 					case EDIT_SPLIT:
 						if (area->SplitEdit(splitAlongX, splitEdge))

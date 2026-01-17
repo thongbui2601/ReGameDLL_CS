@@ -440,6 +440,13 @@ void CCSBot::EquipBestWeapon(bool mustEquip)
 	if (!mustEquip && m_equipTimer.GetElapsedTime() < minEquipInterval)
 		return;
 
+	// Zombie Mode: Terrorists only use knives
+	if (m_iTeam == TERRORIST && CVAR_GET_FLOAT("mp_zombie") > 0.0f)
+	{
+		EquipKnife();
+		return;
+	}
+
 	CBasePlayerWeapon *pPrimary = static_cast<CBasePlayerWeapon *>(m_rgpPlayerItems[PRIMARY_WEAPON_SLOT]);
 	if (pPrimary)
 	{

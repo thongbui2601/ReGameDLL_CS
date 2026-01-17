@@ -342,6 +342,13 @@ void CCSBot::Update()
 	CBasePlayer* threat = GetRecognizedEnemy();
 	if (threat)
 	{
+		// Zombie Mode: Terrorists are Zombies
+		if (m_iTeam == TERRORIST && CVAR_GET_FLOAT("mp_zombie") > 0.0f)
+		{
+			SetDisposition(ENGAGE_AND_INVESTIGATE);
+			m_safeTime = 0.0f; // Zombies are never safe, they just hunt
+		}
+
 		// adjust our personal "safe" time
 		AdjustSafeTime();
 
