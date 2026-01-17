@@ -49,7 +49,7 @@ void HuntState::OnUpdate(CCSBot *me)
 	// if we've been hunting for a long time, drop into Idle for a moment to
 	// select something else to do
 	const float huntingTooLongTime = 30.0f;
-	if (gpGlobals->time - me->GetStateTimestamp() > huntingTooLongTime)
+	if (CVAR_GET_FLOAT("mp_zombie") <= 0.0f && gpGlobals->time - me->GetStateTimestamp() > huntingTooLongTime)
 	{
 		// stop being a rogue and do the scenario, since there must not be many enemies left to hunt
 		me->PrintIfWatched("Giving up hunting, and being a rogue\n");
@@ -171,6 +171,39 @@ void HuntState::OnUpdate(CCSBot *me)
 	if (me->GetLastKnownArea() == m_huntArea || me->UpdatePathMovement() != CCSBot::PROGRESSING)
 	{
 		m_huntArea = nullptr;
+
+		// Zombie Mode: Sense nearby Humans (Cheating/Wallhack logic)
+		if (CVAR_GET_FLOAT("mp_zombie") > 0.0f && me->m_iTeam == TERRORIST)
+		{
+			// Find all living CTs
+			CBasePlayer *victims[32];
+			int victimCount = 0;
+
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBasePlayer *player = UTIL_PlayerByIndex(i);
+				if (player && player->IsAlive() && player->m_iTeam == CT)
+				{
+					victims[victimCount++] = player;
+				}
+			}
+
+			if (victimCount > 0)
+			{
+				// Pick a random victim to swarm (or closest? random prevents stacking)
+				CBasePlayer *victim = victims[RANDOM_LONG(0, victimCount - 1)];
+				m_huntArea = TheNavAreaGrid.GetNearestNavArea(&victim->pev->origin);
+				
+				if (m_huntArea)
+				{
+					me->PrintIfWatched("Zombie Sensing: Hunting %s!\n", STRING(victim->pev->netname));
+					// Zombies rush, so use FASTEST_ROUTE
+					me->ComputePath(m_huntArea, nullptr, FASTEST_ROUTE);
+					return;
+				}
+			}
+		}
+
 		float oldest = 0.0f;
 
 		int areaCount = 0;
