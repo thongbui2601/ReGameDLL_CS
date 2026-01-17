@@ -1376,6 +1376,19 @@ CCSBot::PathResult CCSBot::UpdatePathMovement(bool allowSpeedChange)
 			if ((close - pev->origin).Make2D().IsLengthGreaterThan(crouchRange))
 				break;
 
+			if (to->GetAttributes() & NAV_CROUCH_JUMP)
+			{
+				Crouch();
+				didCrouch = true;
+
+				// If we are already crouching, then Jump!
+				if (IsCrouching())
+				{
+					Jump(MUST_JUMP);
+				}
+				break;
+			}
+
 			if (to->GetAttributes() & NAV_CROUCH)
 			{
 				Crouch();

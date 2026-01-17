@@ -90,6 +90,16 @@ bool CCSBot::Jump(bool mustJump)
 		return false;
 	}
 
+	// New flag NAV_CROUCH_JUMP: Allow jumping while crouching
+	if (m_lastKnownArea && (m_lastKnownArea->GetAttributes() & NAV_CROUCH_JUMP))
+	{
+		if (IsJumping())
+			return false;
+
+		m_buttonFlags |= IN_JUMP;
+		return true;
+	}
+
 	return CBot::Jump(mustJump);
 }
 

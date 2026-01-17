@@ -3573,7 +3573,11 @@ void CNavArea::DrawConnectedAreas()
 	}
 	else
 	{
-		Draw(255, 255, 0, 3);
+		if (GetAttributes() & NAV_CROUCH_JUMP)
+			Draw(0, 255, 255, 3);
+		else
+			Draw(255, 255, 0, 3);
+
 		DrawHidingSpots(this);
 	}
 
@@ -3633,6 +3637,11 @@ void CNavArea::DrawConnectedAreas()
 						adj->Draw(255, 255, 255, 3);
 					else
 						adj->Draw(255, 0, 255, 3);
+				}
+				else if (adj->GetAttributes() & NAV_CROUCH_JUMP)
+				{
+					// Draw Crouch Jump areas in Cyan to distinguish from normal Crouch (Blue) or Jump (Yellow)
+					adj->Draw(0, 255, 255, 3);
 				}
 				else
 				{
@@ -3913,14 +3922,15 @@ void EditNavAreas(NavEditCmdType cmd)
 				}
 				else
 				{
-					Q_snprintf(attrib, sizeof(attrib), "%s%s%s%s%s%s%s",
+					Q_snprintf(attrib, sizeof(attrib), "%s%s%s%s%s%s%s%s",
 						(area->GetAttributes() & NAV_CROUCH)      ? "CROUCH "  : "",
 						(area->GetAttributes() & NAV_JUMP)        ? "JUMP "    : "",
 						(area->GetAttributes() & NAV_PRECISE)     ? "PRECISE " : "",
 						(area->GetAttributes() & NAV_NO_JUMP)     ? "NO_JUMP " : "",
 						(area->GetAttributes() & NAV_ZOMBIE_ONLY) ? "ZOMBIE "  : "",
 						(area->GetAttributes() & NAV_HUMAN_ONLY)  ? "HUMAN "   : "",
-						(area->GetAttributes() & NAV_CAMP)        ? "CAMP "    : "");
+						(area->GetAttributes() & NAV_CAMP)        ? "CAMP "    : "",
+						(area->GetAttributes() & NAV_CROUCH_JUMP) ? "CROUCH_JUMP " : "");
 				}
 
 				Q_snprintf(buffer, sizeof(buffer), "Area #%d %s %s\n", area->GetID(), locName, attrib);
@@ -4080,6 +4090,10 @@ void EditNavAreas(NavEditCmdType cmd)
 					case EDIT_ATTRIB_CAMP:
 						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
 						area->SetAttributes(area->GetAttributes() ^ NAV_CAMP);
+						break;
+					case EDIT_ATTRIB_CROUCH_JUMP:
+						EMIT_SOUND_DYN(ENT(pLocalPlayer->pev), CHAN_ITEM, "buttons/bell1.wav", 1, ATTN_NORM, 0, 100);
+						area->SetAttributes(area->GetAttributes() ^ NAV_CROUCH_JUMP);
 						break;
 					case EDIT_SPLIT:
 						if (area->SplitEdit(splitAlongX, splitEdge))

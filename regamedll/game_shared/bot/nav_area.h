@@ -54,6 +54,7 @@ enum NavEditCmdType
 	EDIT_ATTRIB_ZOMBIE_ONLY,
 	EDIT_ATTRIB_HUMAN_ONLY,
 	EDIT_ATTRIB_CAMP,
+	EDIT_ATTRIB_CROUCH_JUMP,
 	EDIT_BEGIN_AREA,			// begin creating a new nav area
 	EDIT_END_AREA,				// end creation of the new nav area
 	EDIT_CONNECT,				// connect marked area to selected area

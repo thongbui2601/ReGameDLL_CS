@@ -72,6 +72,7 @@ enum NavAttributeType
 	NAV_ZOMBIE_ONLY = 0x10,
 	NAV_HUMAN_ONLY  = 0x20,
 	NAV_CAMP        = 0x40,
+	NAV_CROUCH_JUMP = 0x80,
 };
 
 enum NavNotifyDestroyType

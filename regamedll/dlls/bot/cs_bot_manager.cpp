@@ -296,6 +296,7 @@ void CCSBotManager::AddServerCommands()
 	AddServerCommand("bot_nav_zombie_only");
 	AddServerCommand("bot_nav_human_only");
 	AddServerCommand("bot_nav_camp");
+	AddServerCommand("bot_nav_crouch_jump");
 	AddServerCommand("bot_nav_analyze");
 	AddServerCommand("bot_nav_strip");
 	AddServerCommand("bot_nav_save");
@@ -582,6 +583,10 @@ void CCSBotManager::ServerCommand(const char *pcmd)
 	else if (FStrEq(pcmd, "bot_nav_camp"))
 	{
 		m_editCmd = EDIT_ATTRIB_CAMP;
+	}
+	else if (FStrEq(pcmd, "bot_nav_crouch_jump"))
+	{
+		m_editCmd = EDIT_ATTRIB_CROUCH_JUMP;
 	}
 	else if (FStrEq(pcmd, "bot_nav_analyze"))
 	{

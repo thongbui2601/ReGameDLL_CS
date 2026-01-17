@@ -255,6 +255,9 @@ protected:
 	// the "personality" profile of this bot
 	const BotProfile *m_profile;
 
+	// bitfield of movement buttons
+	unsigned short m_buttonFlags;
+
 private:
 	void ResetCommand();
 	byte ThrottledMsec() const;
@@ -283,8 +286,7 @@ private:
 	float m_strafeSpeed;
 	float m_verticalSpeed;
 
-	// bitfield of movement buttons
-	unsigned short m_buttonFlags;
+
 
 	// time when we last began a jump
 	float m_jumpTimestamp;
